@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        LOGIN PAGE
+        <br/>
+        email: <input type="text" name="email-input" id="input-email"/>
+        password: <input type="text" name="password-input" id="input-password"/>
+        <button type="submit" id="submit" onclick="loginSubmit()">Submit</button>
+    </div>
+
+    <script>
+        function loginSubmit() {
+            let inemail = document.getElementById("input-email").value;
+            let inpassword = document.getElementById("input-password").value;
+            fetch("http://twice.cse356.compas.cs.stonybrook.edu/users/login/", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({email: inemail, password: inpassword})
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data)
+                if (data.status) {
+                    console.log("LOGIN SUCCESSFUL");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
