@@ -4,8 +4,10 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var client = require('./elastic_client');
+var queue = require('./queue');
 var fs = require('fs');
 var env = require('dotenv');
+var amqp = require('amqplib/callback_api');
 // var cors = require('cors');
 const app = express();
 env.config();
@@ -49,6 +51,26 @@ app.use('/edit', editRouter);
 app.use('/home', homeRouter);
 app.use('/index', indexRouter);
 app.use('/', express.static(path.join(__dirname, 'yjs_library')));
+
+client.createIndex(true);
+queue.connectQueue();
+
+// let ch = null;
+// const opt = { credentials: amqp.credentials.plain('rabbit', 'mq') };
+// amqp.connect('amqp://209.94.58.157', opt, function(error0, connection) {
+//     if (error0) {
+//         throw error0;
+//     }
+//     connection.createChannel(function(error1, channel) {
+//         ch = channel;
+//     });
+//     // setTimeout(function() {
+//     //     connection.close();
+//     //     process.exit(0);
+//     // }, 500);
+// });
+
+// exports.ch = ch;
 
 app.listen(3000, () => {
   console.log('App is listening on port 3000');

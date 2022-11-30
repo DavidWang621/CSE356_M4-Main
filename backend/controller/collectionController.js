@@ -3,7 +3,8 @@ var document = require('../doc');
 var DocumentModel = require('../models/document');
 const {ObjectId} = require('mongodb');
 var { fromUint8Array, toUint8Array } = require('js-base64');
-var client = require('../app.js');
+// var client = require('../app.js');
+var client = require('../elastic_client');
 
 class collectionController {
     static async createDoc(req, res, next) {
@@ -27,6 +28,8 @@ class collectionController {
             while(document.topTen.length >50){
                 document.topTen.pop();
             }
+
+            await client.CreateUpdateDocument('documents', docID, name, "");
 
             // var newDoc = new DocumentModel({
             //     name, 
@@ -63,10 +66,11 @@ class collectionController {
 
         // await DocumentModel.deleteOne({_id: docID});
 
-        await client.client.delete({
-            index: 'documents',
-            id: docID
-        })
+        // await client.client.delete({
+        //     index: 'documents',
+        //     id: docID
+        // })
+        await client.deleteDocument('documents, docID');
 
         if(document.doc[docID]){
             delete document.doc[docID];

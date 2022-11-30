@@ -4,6 +4,9 @@ var Y = require('yjs');
 var { fromUint8Array, toUint8Array } = require('js-base64');
 var UserModel = require('../models/userInfo');
 var client = require('../elastic_client');
+var amqp = require('amqplib/callback_api');
+// var ch = require('../app');
+var queue = require('../queue');
 
 class apiController {
     static async makeDoc(req, res, next) {
@@ -81,24 +84,11 @@ class apiController {
         // console.log("docID OP", docID);
         let op = req.body.data;
 
-        // console.log("REQ DATA OP", op);
-        // let clientID = req.body.clientID;
-        // var uint8array = new TextEncoder().encode(op);
-    
-        // Y.applyUpdate(document.doc[docID], uint8array);
-
         Y.applyUpdate(document.doc[docID], toUint8Array(op));
-        // console.log("before adding to elasticsearch");
-        // await client.index({
-        //     index: 'documents',
-        //     id: docID,
-        //     body: {
-        //         name: document.docNames[docID], 
-        //         content: document.doc[docID].getText("quill")
-        //     }
-        // });
-        // await client.indices.refresh({ index: 'documents' });
-        // console.log("after adding to elasticsearch");
+        
+        var msg = JSON.stringify({index: 'documents', id: docID, name: document.docNames[docID], content: document.doc[docID].getText("quill")});
+        // console.log("SENDING TO CHANNEL", ch.ch);
+        queue.sendToChannel('update', msg);
 
         let index = document.topTen.indexOf(docID);
         if (index > 0){
@@ -110,11 +100,6 @@ class apiController {
         while(document.topTen.length >50){
             document.topTen.pop();
         }
-
-        // let data = {
-        //     update: op, 
-        //     id: req.body.id
-        // }
 
         let clients = document.clients[docID];
         if (clients != undefined) {
