@@ -49,14 +49,14 @@ class indexController {
         //     }
         // })
         let results = await client.suggestDocument("documents", suggestTerm);
-        let output = [];
-        results = results.suggest.suggestion[0].options;
-        for (let i in results) {
-            if (results[i].text.length >= returnLen) {
-                output.push(results[i].text);
-            }
-        }
-        return res.status(200).json(output);
+        // let output = [];
+        // results = results.suggest.suggestion[0].options;
+        // for (let i in results) {
+        //     if (results[i].text.length >= returnLen) {
+        //         output.push(results[i].text);
+        //     }
+        // }
+        return res.status(200).json(results);
     }
 };
 

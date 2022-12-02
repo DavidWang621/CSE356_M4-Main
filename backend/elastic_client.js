@@ -1,5 +1,6 @@
 const { Client } = require("@elastic/elasticsearch");
 const word_list = require("./word_list");
+const common_bulk = require("./common_bulk");
 var fs = require('fs');
 var env = require('dotenv');
 env.config();
@@ -41,22 +42,35 @@ async function createIndex(del) {
                             "tokenizer": "standard",
                             "filter": [
                                 "lowercase",
-                                // "kstem",
-                                // "dictionary_decompound",
                                 "stop", 
                                 "unique"
                             ]
+                        }, 
+                        "dict": {
+                            "tokenizer": "standard", 
+                            "filter": ["dictionary_decompound"]
+                        }
+                    },
+                    "filter": {
+                        "dictionary_decompound": {
+                            "type": "dictionary_decompounder",
+                            "word_list": word_list, 
+                            "min_subword_size": 4
                         }
                     }
-                    // "filter": {
-                    //     "dictionary_decompound": {
-                    //         "type": "dictionary_decompounder",
-                    //         "word_list": word_list, 
-                    //         "min_subword_size": 4
-                    //     }
-                    // }
                 }
             }
+        });
+    }
+
+    const exists2 = await client.indices.exists({ index: 'suggest' });
+    if (!exists2) {
+        console.log("Creating Suggest document");
+        // client.indices.create({
+        //     index: "suggest"
+        // })
+        client.bulk({
+            body: common_bulk
         });
     }
 }
@@ -124,8 +138,6 @@ async function searchDocument(index, searchTerms) {
 
     const results = await client.search({
         index: index,
-        from:0,
-        size:10,
         query: {
             multi_match: {
                 query: searchTerms,
@@ -140,7 +152,8 @@ async function searchDocument(index, searchTerms) {
             fields: {
                 content: {type: "plain"}, 
                 name: {type: "plain"}
-            }
+            }, 
+            fragment_size: 300
         }
     });
     return results;
@@ -148,18 +161,48 @@ async function searchDocument(index, searchTerms) {
 exports.searchDocument = searchDocument;
 
 async function suggestDocument(index, suggestTerm) {
-    const results = await client.search({
-        index: index, 
-        suggest: {
-            suggestion: {
-                text: suggestTerm,
-                term: { 
-                    field: 'content'
+    const results = await client.indices.analyze({
+        // index: index, 
+        // analyzer: "dict", 
+        // text: suggestTerm, 
+        // min_subword_size: 5
+        "tokenizer": "standard",
+        "filter": [{
+            "type": "dictionary_decompounder",
+            "word_list": word_list,
+            min_subword_size: 5
+        }],
+        "text": suggestTerm
+    });
+    let fullword = "";
+    for (let i = 1; i < results.tokens.length; i++) {
+        if (fullword.length < results.tokens[i].token.length) {
+            fullword = results.tokens[i].token
+        }
+    }
+    // console.log("fullword", fullword);
+    let incomplete_word = suggestTerm.replace(fullword, '');
+    // console.log("results", results);
+    // console.log("nonfull word:", incomplete_word);
+    let complete_words = await client.search({
+        index: 'suggest', 
+        size: 30,
+        query: {
+            fuzzy: {
+                word: {
+                    value: incomplete_word,
+                    fuzziness: 2,
+                    prefix_length: incomplete_word.length + 1
                 }
             }
         }
     });
-    return results;
+    
+    let options = [];
+    complete_words.hits.hits.forEach(word => {
+        options.push(fullword + word._source.word);
+    })
+    return options;
 }
 exports.suggestDocument = suggestDocument;
 

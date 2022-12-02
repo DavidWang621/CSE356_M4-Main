@@ -8,6 +8,7 @@ var queue = require('./queue');
 var fs = require('fs');
 var env = require('dotenv');
 var amqp = require('amqplib/callback_api');
+var MongoDBStore = require('connect-mongodb-session')(session);
 // var cors = require('cors');
 const app = express();
 env.config();
@@ -16,7 +17,7 @@ env.config();
 // app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('secret'));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -36,10 +37,19 @@ var indexRouter = require('./routes/indexRoute');
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.set('trust proxy', 1);
+
+// var store = new MongoDBStore({
+//   uri: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority',
+//   databaseName: 'test',
+//   collection: 'mySessions'
+// });
+
 app.use(session({
   secret: "super secret key",
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  // store: store,
+  // unset: 'destroy'
 }));
 
 app.use('/', loadRouter);
@@ -54,23 +64,6 @@ app.use('/', express.static(path.join(__dirname, 'yjs_library')));
 
 client.createIndex(true);
 queue.connectQueue();
-
-// let ch = null;
-// const opt = { credentials: amqp.credentials.plain('rabbit', 'mq') };
-// amqp.connect('amqp://209.94.58.157', opt, function(error0, connection) {
-//     if (error0) {
-//         throw error0;
-//     }
-//     connection.createChannel(function(error1, channel) {
-//         ch = channel;
-//     });
-//     // setTimeout(function() {
-//     //     connection.close();
-//     //     process.exit(0);
-//     // }, 500);
-// });
-
-// exports.ch = ch;
 
 app.listen(3000, () => {
   console.log('App is listening on port 3000');
