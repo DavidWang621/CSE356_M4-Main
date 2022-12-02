@@ -6,14 +6,10 @@ var { exec } = require('child_process');
 class usersController {
     static async signUpUser(req, res, next) {
       var { name, email, password } = req.body;
-      // console.log("signup", name, email, password);
-
-      // check if email exist, if it does, don't let them add user
       var user = await UserModel.findOne({email});
       if (user){
           return res.status(200).json({ error: true, message: 'user exist' });
       }
-
       var key = makeKey();
       var hashpswd = await bcrypt.hash(password, 9);
       var user = new UserModel({
@@ -26,7 +22,6 @@ class usersController {
       // twice.cse356.compas.cs.stonybrook.edu
       var mail_body = "http://twice.cse356.compas.cs.stonybrook.edu/users/verify?email="+encodeURIComponent(email)+"&key="+key;
       var script = "echo \"" + mail_body + "\" | mail -s \"Verification Link\" --encoding=quoted-printable " + email;
-      // console.log("Script", script);
       exec(script, (error, stdout, stderr) => {
           if (error) {
               // console.log(`error: ${error.message}`);
@@ -36,20 +31,13 @@ class usersController {
               // console.log(`stderr: ${stderr}`);
               return;
           }
-        // console.log(`stdout here: ${stdout}`);
       });
-      // console.log("after mailing");
-      
       await user.save(); 
-      // console.log("user saved");
       return res.status(200).json({status: 'OK'});
     }
 
     static async loginUser(req, res, next) {
       var { email, password } = req.body;
-      // console.log("email", email);
-      // console.log("password", password);
-
       var user = await UserModel.findOne({email : email});
       if (!user) {
         return res.status(200).json({ error: true, message: 'invalid email' });
@@ -57,7 +45,6 @@ class usersController {
       var isMatch = await bcrypt.compare(password, user.password);
       
       if (!isMatch) {
-        // console.log("ERROR wrong pass");
         return res.status(200).json({ error: true, message: 'wrong password' });
       }
 
@@ -85,7 +72,6 @@ class usersController {
 
     static async verifyUser(req, res, next) {
       var { email, key} = req.query;
-      // console.log("verify -- email", email, "key", key);
       var emailUser = await UserModel.findOne({email});
       var keyUser = await UserModel.findOne({key});
       if(emailUser === null){
@@ -98,15 +84,12 @@ class usersController {
           await userModel.deleteOne({email});
           return res.status(200).json({ error: true, message: 'user is not the same' });
       }
-
-      // console.log("user verified");
       var curr_date = new Date();
       let result = {
           status: 'OK',
           email: email,
           date: curr_date, 
       };
-      // console.log('verified', result);
       return res.status(200).json({status: 'OK', name: emailUser.name});
     }
 };

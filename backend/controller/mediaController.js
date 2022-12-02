@@ -47,7 +47,6 @@ class mediaController {
         session = session.id;
         
         let mediaid = req.params.mediaid;
-        // console.log("hhhhh", document.images[mediaid]);
         if(!document.images[mediaid]){
             return res.status(200).json({ error: true, message: 'image does not exist' });
         }
@@ -57,8 +56,6 @@ class mediaController {
         res.sendFile(document.images[mediaid].filename, options, function (err) {
             if (err) {
                 return res.status(200).json({ error: true, message: err });
-            } else {
-                // console.log('Sent:', document.images[mediaid].filename);
             }
         });
     }

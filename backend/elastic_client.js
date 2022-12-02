@@ -153,7 +153,7 @@ async function searchDocument(index, searchTerms) {
                 content: {type: "plain"}, 
                 name: {type: "plain"}
             }, 
-            fragment_size: 300
+            fragment_size: 500
         }
     });
     return results;

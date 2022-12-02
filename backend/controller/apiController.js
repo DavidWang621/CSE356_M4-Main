@@ -5,25 +5,20 @@ var { fromUint8Array, toUint8Array } = require('js-base64');
 var UserModel = require('../models/userInfo');
 var client = require('../elastic_client');
 var amqp = require('amqplib/callback_api');
-// var ch = require('../app');
 var queue = require('../queue');
 
 class apiController {
     static async makeDoc(req, res, next) {
-        // console.log("GET req for", req.params.id);
         let session = req.session.session;
-        // console.log("CURRENT SESSION", req.session.session);
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
         session = session.id;
 
         let docID = req.params.id;
-        // console.log("docID CONNECT", docID);
         if(!document.doc[docID]){
             return res.status(200).json({ error: true, message: 'document does not exist' });
         }
-
         const headers = {
             'Content-Type': 'text/event-stream',
             'Connection': 'keep-alive',
@@ -36,18 +31,10 @@ class apiController {
         
         let uniqueClientID = session;
 
-        // let data = {
-        //     update: fromUint8Array(Y.encodeStateAsUpdate(document.doc[docID])), 
-        //     clientID: uniqueClientID
-        // }
-        // let data = new TextDecoder().decode(Y.encodeStateAsUpdate(document.doc[docID]));
         let data = fromUint8Array(Y.encodeStateAsUpdate(document.doc[docID]));
         
         const syncEvent = `event: sync\ndata: ${data}\nid: ${session}\n\n`;
-        // console.log("SYNC of " + docID, data, uniqueClientID);
         res.write(syncEvent);
-
-        // document.presences[session] = {};
 
         if(document.clients[docID]){
             document.clients[docID].push([res, session]);
@@ -58,16 +45,7 @@ class apiController {
 
         
         res.on('close', () =>{
-            // console.log("closing connection");
             document.clients[docID] = document.clients[docID].filter(respond => respond[1] !== session);
-            // document.presences[session] = {};
-            // let data = {}
-            // if (document.clients[docID] != undefined) {
-            //     document.clients[docID].forEach(client => {
-            //         client[0].write(`event: presence\ndata: ${JSON.stringify(data)}\n\n`);
-            //     });
-            // }
-
         })
         
     }
@@ -87,19 +65,18 @@ class apiController {
         Y.applyUpdate(document.doc[docID], toUint8Array(op));
         
         var msg = JSON.stringify({index: 'documents', id: docID, name: document.docNames[docID], content: document.doc[docID].getText("quill")});
-        // console.log("SENDING TO CHANNEL", ch.ch);
         queue.sendToChannel('update', msg);
 
-        let index = document.topTen.indexOf(docID);
-        if (index > 0){
-            document.topTen.splice(index, 1);
-            document.topTen.unshift(docID);
-        }else if(index < 0){
-            document.topTen.unshift(docID);
-        }
-        while(document.topTen.length >50){
-            document.topTen.pop();
-        }
+        // let index = document.topTen.indexOf(docID);
+        // if (index > 0){
+        //     document.topTen.splice(index, 1);
+        //     document.topTen.unshift(docID);
+        // }else if(index < 0){
+        //     document.topTen.unshift(docID);
+        // }
+        // while(document.topTen.length >50){
+        //     document.topTen.pop();
+        // }
 
         let clients = document.clients[docID];
         if (clients != undefined) {
@@ -120,10 +97,7 @@ class apiController {
         }
         session = session.id;
 
-        // var user = await UserModel.findOne({_id: new ObjectID(req.session.session.name)});
-
         document.presences[session] = {index: payload.index, length: payload.length}
-        // document.presences[payload.clientID] = {index: payload.index, length: payload.length}
 
         let docID = req.params.id;
 
@@ -131,16 +105,11 @@ class apiController {
 
         let clientID = payload.clientID;
 
-        // let data = {
-        //     session_id: session, 
-        //     name: user.name, 
-        //     cursor: document.presences[session]}
         let data = {
             session_id: session, 
             name: req.session.session.name,
             cursor: document.presences[session]}
         if (clients != undefined) {
-            // clients.filter(c => c[1] != clientID) 
             clients.forEach(client => {
                 client[0].write(`event: presence\ndata: ${JSON.stringify(data)}\n\n`);
             });
