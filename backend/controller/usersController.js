@@ -52,8 +52,10 @@ class usersController {
       // console.log("sessionid cookie set", user._id);
       // // req.session.sessionid = user._id;
       // // console.log("SESSION CREATED", req.session.sessionid);
-      req.session.session = { randomid: makeKey(), id: user._id, name: user.name };
+      req.session.values = { randomid: makeKey(), id: user._id, name: user.name };
+      console.log("SESSION INFO", req.session.values);
       res.status(200).json({status: 'OK', name: user.name});
+      // return res.status(200).cookie("session", {randomid: makeKey(), id: user._id, name: user.name}).json({status: 'OK', name: user.name});
     }
 
     static async logoutUser(req, res, next) {
@@ -65,9 +67,12 @@ class usersController {
       // collection.deleteOne({ session: query }, function(e, found) {
       //   console.log(found);
       // });
-      req.session.destroy();
-      // req.session = null;
+      req.session.destroy((err) => {
+        if (err) throw err;
+      });
       res.status(200).json({status: 'OK'});
+      // req.session = null;
+      // res.status(200).clearCookie("session").json({status: 'OK'});
     }
 
     static async verifyUser(req, res, next) {

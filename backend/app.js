@@ -8,22 +8,15 @@ var queue = require('./queue');
 var fs = require('fs');
 var env = require('dotenv');
 var amqp = require('amqplib/callback_api');
-var MongoDBStore = require('connect-mongodb-session')(session);
+var MongoStore = require('connect-mongo');
+var connectDB = require("./db");
+// var MongoDBStore = require('connect-mongodb-session')(session);
 // var cors = require('cors');
 const app = express();
 env.config();
 
-// app.use(cors());
-// app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('secret'));
-
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
-var connectDB = require("./db");
-connectDB();
 
 var loadRouter = require('./routes/loadRoute');
 var apiRouter = require('./routes/apiRoute');
@@ -32,11 +25,15 @@ var collectionRouter = require('./routes/collectionRoute');
 var mediaRouter = require('./routes/mediaRoute');
 var editRouter = require('./routes/editRoute');
 var homeRouter = require('./routes/homeRoute');
-var indexRouter = require('./routes/indexRoute');
+// var indexRouter = require('./routes/indexRoute');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.set('trust proxy', 1);
+// app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// app.set('trust proxy', 1);
 
 // var store = new MongoDBStore({
 //   uri: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority',
@@ -45,11 +42,13 @@ app.set('trust proxy', 1);
 // });
 
 app.use(session({
-  secret: "super secret key",
+  secret: "secret",
   resave: false,
-  saveUninitialized: true,
-  // store: store,
-  // unset: 'destroy'
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority', 
+    dbname: 'test'
+  })
 }));
 
 app.use('/', loadRouter);
@@ -59,11 +58,12 @@ app.use('/collection', collectionRouter);
 app.use('/media', mediaRouter);
 app.use('/edit', editRouter);
 app.use('/home', homeRouter);
-app.use('/index', indexRouter);
-app.use('/', express.static(path.join(__dirname, 'yjs_library')));
+// app.use('/index', indexRouter);
+app.use('/', express.static(path.join(__dirname, 'bundle')));
 
 client.createIndex(true);
 queue.connectQueue();
+connectDB();
 
 app.listen(3000, () => {
   console.log('App is listening on port 3000');

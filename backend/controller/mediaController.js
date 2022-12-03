@@ -23,11 +23,12 @@ var upload = multer({storage: storage,
 
 class mediaController {
     static async uploadMedia(req, res, next) {
-        let session = req.session.session;
+        let session = req.session.values;
+        // let session = req.cookies.session;
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
-        session = session.id;
+        // session = session.id;
 
         upload(req, res, (err) => {
             if (err) {
@@ -40,11 +41,12 @@ class mediaController {
     }
 
     static async getMedia(req, res, next) {
-        let session = req.session.session;
+        let session = req.session.values;
+        // let session = req.cookies.session;
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
-        session = session.id;
+        // session = session.id;
         
         let mediaid = req.params.mediaid;
         if(!document.images[mediaid]){

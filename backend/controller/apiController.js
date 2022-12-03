@@ -4,12 +4,12 @@ var Y = require('yjs');
 var { fromUint8Array, toUint8Array } = require('js-base64');
 var UserModel = require('../models/userInfo');
 var client = require('../elastic_client');
-var amqp = require('amqplib/callback_api');
 var queue = require('../queue');
 
 class apiController {
     static async makeDoc(req, res, next) {
-        let session = req.session.session;
+        let session = req.session.values;
+        // let session = req.cookies.session;
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
@@ -43,7 +43,6 @@ class apiController {
             document.clients[docID] = [[res, session ]];
         };
 
-        
         res.on('close', () =>{
             document.clients[docID] = document.clients[docID].filter(respond => respond[1] !== session);
         })
@@ -52,11 +51,12 @@ class apiController {
 
     static async updateDoc(req, res, next) {
         // console.log("POST req for ", req.body.id);
-        let session = req.session.session;
+        let session = req.session.values;
+        // let session = req.cookies.session;
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
-        session = session.id;
+        // session = session.id;
 
         let docID = req.params.id;
         // console.log("docID OP", docID);
@@ -89,13 +89,16 @@ class apiController {
     }
 
     static async insertPresenceInDoc(req, res, next) {
-        let session = req.session.session;
-        let payload = req.body;
+        console.log("PRESENCE CALL");
+        let session = req.session.values;
+        // let session = req.cookies.session;
         // console.log("POST presence req for", req.params.id, "data is", payload);
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
         session = session.id;
+        
+        let payload = req.body;
 
         document.presences[session] = {index: payload.index, length: payload.length}
 
@@ -108,7 +111,8 @@ class apiController {
         let data = {
             session_id: session, 
             name: req.session.session.name,
-            cursor: document.presences[session]}
+            cursor: document.presences[session]
+        }
         if (clients != undefined) {
             clients.forEach(client => {
                 client[0].write(`event: presence\ndata: ${JSON.stringify(data)}\n\n`);

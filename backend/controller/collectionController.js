@@ -7,6 +7,7 @@ var client = require('../elastic_client');
 
 class collectionController {
     static async createDoc(req, res, next) {
+        console.log("CREATING DOC");
         let name = req.body.name;
         let ydoc = new Y.Doc();
         let docID = ydoc.clientID.toString();
@@ -53,11 +54,13 @@ class collectionController {
 
     static async listDocs(req, res, next) {
         console.log("ACTUALLY LISTING DOCS");
-        let session = req.session.session;
+        let session = req.session.values;
+        // let session = req.cookies;
+        console.log("REQ COOKIE", session);
         if (session === undefined){
             return res.status(200).json({ error: true, message: 'not logged in' });
         }
-        session = session.id;
+        // session = session.id;
 
         let lst = [];
         let cnt = 10;

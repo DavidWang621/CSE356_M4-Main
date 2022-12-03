@@ -1,10 +1,13 @@
 var amqp = require('amqplib');
+var fs = require('fs');
+var env = require('dotenv');
+env.config();
 var channel;
 
 async function connectQueue() {
     const opt = { credentials: amqp.credentials.plain('rabbit', 'mq') };
     try {
-      const amqpServer = 'amqp://209.94.58.157'
+      const amqpServer = process.env.rabbit_ip;
       connection = await amqp.connect(amqpServer, opt);
       channel = await connection.createChannel();
       await channel.assertQueue('update', {
