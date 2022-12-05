@@ -1,20 +1,25 @@
-var Y = require('yjs');
-var document = require('../doc');
+// var Y = require('yjs');
+// var document = require('../doc');
 var DocumentModel = require('../models/document');
-const {ObjectId} = require('mongodb');
-var { fromUint8Array, toUint8Array } = require('js-base64');
 var client = require('../elastic_client');
 
 class collectionController {
     static async createDoc(req, res, next) {
-        console.log("CREATING DOC");
+        // console.log("CREATING DOC");
         let name = req.body.name;
-        let ydoc = new Y.Doc();
-        let docID = ydoc.clientID.toString();
-        if(!document.doc[docID]){
-            document.doc[docID] = ydoc;
-            document.docNames[docID] = name;
+        // let ydoc = new Y.Doc();
+        // let docID = ydoc.clientID.toString();
+        // if(!document.doc[docID]){
+        //     document.doc[docID] = ydoc;
+        //     document.docNames[docID] = name;
 
+        let docID = makeKey();
+        var new_document = new DocumentModel({
+            name, 
+            id: docID, 
+            date: new Date()
+        });
+        new_document.save();
             // let index = document.topTen.indexOf(docID);
             // if (index > -1){
             //     document.topTen.splice(index, 1);
@@ -26,11 +31,11 @@ class collectionController {
             // while(document.topTen.length >50){
             //     document.topTen.pop();
             // }
-            await client.CreateUpdateDocument('documents', docID, name, "");
-        }
-        else{
-            return res.status(200).json({ error: true, message: 'doc already exist' });
-        }
+        await client.CreateUpdateDocument('documents', docID, name, "");
+        // }
+        // else{
+        //     return res.status(200).json({ error: true, message: 'doc already exist' });
+        // }
 
         return res.status(200).json({status: 'OK', id: docID});
     }
@@ -53,8 +58,8 @@ class collectionController {
     }
 
     static async listDocs(req, res, next) {
-        console.log("ACTUALLY LISTING DOCS");
-        let session = req.session.values;
+        console.log("IMPLEMENT LATER ON - LIST DOCS FROM MONGODB");
+        let session = req.cookies.values;
         // let session = req.cookies;
         console.log("REQ COOKIE", session);
         if (session === undefined){
@@ -63,17 +68,27 @@ class collectionController {
         // session = session.id;
 
         let lst = [];
-        let cnt = 10;
-        if(document.topTen.length < 10){
-            cnt = document.topTen.length
-        }
-        for(let i = 0; i< cnt; i++){
-            let docID = document.topTen[i]
-            lst.push({id: docID, name: document.docNames[docID]});
-        }
+        // let cnt = 10;
+        // if(document.topTen.length < 10){
+        //     cnt = document.topTen.length
+        // }
+        // for(let i = 0; i< cnt; i++){
+        //     let docID = document.topTen[i]
+        //     lst.push({id: docID, name: document.docNames[docID]});
+        // }
 
         return res.status(200).json(lst);
     }
 };
+
+function makeKey() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < 20; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
+}
 
 module.exports = collectionController;

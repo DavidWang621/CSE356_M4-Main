@@ -2,13 +2,13 @@ const express = require('express');
 const path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var session = require('express-session');
+// var session = require('express-session');
 var client = require('./elastic_client');
 var queue = require('./queue');
 var fs = require('fs');
 var env = require('dotenv');
 var amqp = require('amqplib/callback_api');
-var MongoStore = require('connect-mongo');
+// var MongoStore = require('connect-mongo');
 var connectDB = require("./db");
 // var MongoDBStore = require('connect-mongodb-session')(session);
 // var cors = require('cors');
@@ -19,7 +19,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 var loadRouter = require('./routes/loadRoute');
-var apiRouter = require('./routes/apiRoute');
+// var apiRouter = require('./routes/apiRoute');
 var usersRouter = require('./routes/usersRoute');
 var collectionRouter = require('./routes/collectionRoute');
 var mediaRouter = require('./routes/mediaRoute');
@@ -32,6 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 // app.set('trust proxy', 1);
 
@@ -41,18 +42,21 @@ app.use(express.urlencoded({ extended: false }));
 //   collection: 'mySessions'
 // });
 
-app.use(session({
-  secret: "secret",
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority', 
-    dbname: 'test'
-  })
-}));
+// app.use(session({
+//   secret: "secret",
+//   resave: false,
+//   saveUninitialized: false,
+//   store: MongoStore.create({
+//     mongoUrl: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority', 
+//     dbname: 'test'
+//   }), 
+//   cookie: {
+//     maxAge: 24 * 360000
+//   }
+// }));
 
 app.use('/', loadRouter);
-app.use('/api', apiRouter);
+// app.use('/api', apiRouter);
 app.use('/users', usersRouter);
 app.use('/collection', collectionRouter);
 app.use('/media', mediaRouter);

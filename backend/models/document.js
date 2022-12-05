@@ -6,11 +6,11 @@ const documentSchema = new Schema({
     type: String,
     required: true
   },
-  content: {
+  id: {
     type: String, 
     required: true
   },
-  lastAccessed: {
+  date: {
     type: Date, 
     required: true
   }

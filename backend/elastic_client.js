@@ -89,6 +89,13 @@ async function CreateUpdateDocument(index, docID, name, content) {
 }
 exports.CreateUpdateDocument = CreateUpdateDocument;
 
+async function bulkUpdate(lst) {
+    client.bulk({
+        body: lst
+    });
+}
+exports.bulkUpdate = bulkUpdate;
+
 async function deleteDocument(index, id) {
     try {
         await client.client.delete({

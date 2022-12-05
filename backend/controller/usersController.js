@@ -52,27 +52,20 @@ class usersController {
       // console.log("sessionid cookie set", user._id);
       // // req.session.sessionid = user._id;
       // // console.log("SESSION CREATED", req.session.sessionid);
-      req.session.values = { randomid: makeKey(), id: user._id, name: user.name };
-      console.log("SESSION INFO", req.session.values);
-      res.status(200).json({status: 'OK', name: user.name});
-      // return res.status(200).cookie("session", {randomid: makeKey(), id: user._id, name: user.name}).json({status: 'OK', name: user.name});
+      // req.cookies.values = { randomid: makeKey(), id: user._id, name: user.name };
+      // console.log("SESSION INFO", req.cookies.values);
+      // res.status(200).json({status: 'OK', name: user.name});
+      return res.status(200).cookie("values", {randomid: makeKey(), id: user._id, name: user.name}).json({status: 'OK', name: user.name});
     }
 
     static async logoutUser(req, res, next) {
       console.log("LOGGING OUT");
-      // let session = req.session.session.id;
-      // console.log("session to delete", session);
-      // let collection = mongoose.connection.db.collection('mySessions');
-      // let query      = new RegExp(`"id":"${session}"`);
-      // collection.deleteOne({ session: query }, function(e, found) {
-      //   console.log(found);
+      // req.session.destroy((err) => {
+      //   if (err) throw err;
       // });
-      req.session.destroy((err) => {
-        if (err) throw err;
-      });
-      res.status(200).json({status: 'OK'});
+      // res.status(200).json({status: 'OK'});
       // req.session = null;
-      // res.status(200).clearCookie("session").json({status: 'OK'});
+      res.status(200).clearCookie("values").json({status: 'OK'});
     }
 
     static async verifyUser(req, res, next) {
