@@ -3,6 +3,9 @@
 var DocumentModel = require('../models/document');
 var client = require('../elastic_client');
 
+var ids = ['a', 'b', 'c', 'd'];
+let roundrobinCount = 0;
+
 class collectionController {
     static async createDoc(req, res, next) {
         // console.log("CREATING DOC");
@@ -13,7 +16,9 @@ class collectionController {
         //     document.doc[docID] = ydoc;
         //     document.docNames[docID] = name;
 
-        let docID = makeKey();
+        let docID = ids[roundrobinCount % ids.length] + makeKey();
+        // console.log("collection make list", docID);
+        roundrobinCount += 1;
         var new_document = new DocumentModel({
             name, 
             id: docID, 

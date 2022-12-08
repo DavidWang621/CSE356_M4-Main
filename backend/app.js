@@ -34,27 +34,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// app.set('trust proxy', 1);
-
-// var store = new MongoDBStore({
-//   uri: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority',
-//   databaseName: 'test',
-//   collection: 'mySessions'
-// });
-
-// app.use(session({
-//   secret: "secret",
-//   resave: false,
-//   saveUninitialized: false,
-//   store: MongoStore.create({
-//     mongoUrl: 'mongodb+srv://twice:ilovecse356@cse356.3bebyax.mongodb.net/?retryWrites=true&w=majority', 
-//     dbname: 'test'
-//   }), 
-//   cookie: {
-//     maxAge: 24 * 360000
-//   }
-// }));
-
 app.use('/', loadRouter);
 // app.use('/api', apiRouter);
 app.use('/users', usersRouter);
@@ -66,7 +45,6 @@ app.use('/home', homeRouter);
 app.use('/', express.static(path.join(__dirname, 'bundle')));
 
 client.createIndex(true);
-queue.connectQueue();
 connectDB();
 
 app.listen(3000, () => {
