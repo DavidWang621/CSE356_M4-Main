@@ -4,7 +4,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 // var session = require('express-session');
 var client = require('./elastic_client');
-var queue = require('./queue');
 var fs = require('fs');
 var env = require('dotenv');
 var amqp = require('amqplib/callback_api');

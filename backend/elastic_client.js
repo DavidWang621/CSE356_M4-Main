@@ -1,7 +1,4 @@
 const { Client } = require("@elastic/elasticsearch");
-const word_list = require("./word_list");
-const common_bulk = require("./common_bulk");
-const animal_bulk = require("./animal_bulk");
 var fs = require('fs');
 var env = require('dotenv');
 env.config();
@@ -30,17 +27,17 @@ async function createIndex(del) {
     if (!exists) {
         console.log("Creating Index documents");
         client.indices.create({
-            index: 'documents',
-            "settings": {
-                "analysis": {
-                    "analyzer": {
-                        "my_analyzer": {
-                            "tokenizer": "standard",
-                            "filter": ["lowercase", "stop"]
-                        }
-                    }
-                }
-            }
+            index: 'documents'
+            // "settings": {
+            //     "analysis": {
+            //         "analyzer": {
+            //             "my_analyzer": {
+            //                 "tokenizer": "standard",
+            //                 "filter": ["lowercase", "stop"]
+            //             }
+            //         }
+            //     }
+            // }
         });
     }
 }
