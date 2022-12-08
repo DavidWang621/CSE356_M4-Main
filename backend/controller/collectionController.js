@@ -3,7 +3,7 @@
 var DocumentModel = require('../models/document');
 var client = require('../elastic_client');
 
-var ids = ['a', 'b', 'c', 'd'];
+var ids = ['a', 'b', 'c', 'd', 'e', 'f'];
 let roundrobinCount = 0;
 
 class collectionController {
